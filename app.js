@@ -4,7 +4,8 @@
 
 var protobuf = require("protocol-buffers"),
     dgram = require("dgram"),
-    fs = require("fs");
+    fs = require("fs"),
+    bignum = require("bignum");
 
 
 var messageTypes = protobuf(fs.readFileSync("steamdiscover.proto"));
@@ -39,7 +40,13 @@ server.on("message", (m, rinfo) => {
     
     var body_content = messageTypes.CMsgRemoteClientBroadcastStatus.decode(body_data);
     console.log(body_content);
-
+    
+    var steamid_buffer = (body_content.users[0] || {} ).steamid;
+    if (steamid_buffer) {
+//      console.log(steamid_buffer.readUIntLE(0,steamid_buffer.length));
+      var steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} )
+      console.log(steamid.toString());
+    } 
   }
 //  } catch (e) { console.log("Error: " + e + "\n\n");}
 });

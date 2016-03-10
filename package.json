@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bignum": "^0.11.0",
-    "protocol-buffers": "^3.1.6"
+    "protocol-buffers": "^3.1.6",
+    "steam-api": "^1.1.3"
   }
 }

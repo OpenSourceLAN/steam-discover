@@ -14,6 +14,7 @@ var protobuf = require("protocol-buffers"),
     bignum = require("bignum"),
     events = require("events");
 
+var seqNum = 1;
 
 var messageTypes = protobuf(fs.readFileSync("steamdiscover.proto"));
 
@@ -42,7 +43,8 @@ class Listener extends events {
       this.emit("invalid_packet", {reason: "too short", message: m});
     }
 
-    var offset = 0;
+    var offset = 0,
+        mlength = m.length;
     var indicator = m.slice(0,8);
     
     if (indicator.compare(packetMagicBytes) !== 0) {
@@ -53,21 +55,39 @@ class Listener extends events {
   
     var headerLength = m.readUInt32LE(offset);
     offset += 4; // 32 bit 
-  
+    
+    if (mlength < offset + headerLength) return;
+
     var header = m.slice(offset, offset + headerLength);
     var headerContent =  messageTypes.CMsgRemoteClientBroadcastHeader.decode(header);
   
     offset += headerLength;
   
+    if (mlength < offset + 4) return;
+
     var bodyLength = m.readUInt32LE(offset);
     offset += 4; // 32 bit
     
+    if (mlength < offset + bodyLength) return;
+
     if (headerContent.msg_type == 1 ) {   /* k)ERemoteClientBroadcastMsgStatus */
       var body_data = m.slice(offset, offset + bodyLength);
 
       this.parseBody(body_data, bodyLength);
 
     }
+    else 
+    {
+// Debugging crap to help figure out wtf is going on
+       console.log("content type: ", headerContent.msg_type); 
+       if (headerContent.msg_type === 0) {
+         var body_data = m.slice(offset, offset + bodyLength);
+
+         var discoveryPacket = messageTypes.CMsgRemoteClientBroadcastDiscovery.decode(body_data);
+         console.log(discoveryPacket);
+       }
+    }
+
   }
 
   // Given a buffer containing an k_ERemoteClientBroadcastMsgStatus, parse the Steam ID 
@@ -82,6 +102,37 @@ class Listener extends events {
       } 
 
   }
+  broadcastDiscovery() {
+    console.log("sending discovery packet");
+
+    var headerBuf = messageTypes.CMsgRemoteClientBroadcastHeader.encode({
+      client_id: Math.ceil(Math.random() * 100000000),
+      msg_type: 0
+    });
+    var body = messageTypes.CMsgRemoteClientBroadcastDiscovery.encode({
+      seq_num: seqNum++
+    });
+
+    var int32Length = 4;
+    var writeOffset = 0;
+    var totalMessageLength = 8 + int32Length + headerBuf.length + int32Length + body.length;
+    var messageBuf = new Buffer(totalMessageLength);
+    packetMagicBytes.copy(messageBuf,writeOffset);
+    writeOffset += packetMagicBytes.length;
+
+    messageBuf.writeUInt32LE(headerBuf.length, writeOffset);
+    writeOffset += int32Length;
+
+    headerBuf.copy(messageBuf, writeOffset);
+    writeOffset += headerBuf.length;
+    
+    messageBuf.writeUInt32LE(body.length, writeOffset);
+    writeOffset += int32Length;
+
+    body.copy(messageBuf, writeOffset);
+    
+    this.server.send(messageBuf, 27036, '0.0.0.0');
+  }
   
 }
 
@@ -93,11 +144,6 @@ function create(opts) {
   
 }
 
-function broadcastDiscovery(server) {
-//  var buf = messageTypes.
-    
-
-}
 
 
 module.exports = {

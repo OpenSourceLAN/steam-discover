@@ -4,7 +4,7 @@
 // https://developer.valvesoftware.com/wiki/Steam_Web_API#GetPlayerSummaries_.28v0001.29
 
 var listener = require("./listener.js"),
-    steam = require("steam-api"), 
+    steam = require("./steamapiwrapper"), 
     fs = require("fs");
 try {
     var apiKey = fs.readFileSync("./apikey.txt").toString().replace(/[\W \n\r]/g, "");
@@ -14,24 +14,25 @@ try {
     require("process").exit(1);
 }
 
-var steamClient = new steam.User(apiKey);
+var steamApiWrapper = steam.create(apiKey);
 
 var l = listener.create({port: 27036, ip: "0.0.0.0"} );
-l.on("client_seen", function(d) { 
-    steamClient.GetPlayerSummaries(d.steam_id).done(function(playersInfo,r) {
-        playersInfo = Array.isArray(playersInfo) ? playersInfo : [playersInfo];
-        
-        playersInfo.forEach(function(p) {
-            if (p.gameextrainfo) { 
-                var extraInfo = ` playing game '${p.gameextrainfo}'`;
-            }
-            console.log(`Saw steam user ${p.personaName}${extraInfo}`);
-        });
-    });
+l.on("client_seen", function(d) {
+  steamApiWrapper.getPlayerInfo(d.steam_id, function(err,p) {
+    if (p.gameextrainfo) { 
+      var extraInfo = ` playing game '${p.gameextrainfo}'`;
+    }
+    
+    console.log(`Saw steam user ${p.personaName}${extraInfo||''}`);
+  });
 });
 l.on("raw_message", function(m) {
     var rinfo = m.sender;
     console.log(`got message from ${rinfo.address}:${rinfo.port}`);
 });
-l.on("invalid_packet", function(d) { console.log("Invalid packet, reason: " + d.reason); });
+l.on("invalid_packet", function(d) { 
+    console.log("Invalid packet, reason: " + d.reason);
+    console.log(d.message.slice(0,8).toString('hex')); 
+});
 
+l.broadcastDiscovery();

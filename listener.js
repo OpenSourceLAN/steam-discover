@@ -12,7 +12,8 @@ var protobuf = require("protocol-buffers"),
     dgram = require("dgram"),
     fs = require("fs"),
     bignum = require("bignum"),
-    events = require("events");
+    events = require("events"),
+    BufferAppender = require("./BufferAppender.js");
 
 var seqNum = 1,
     clientId = Math.ceil(Math.random() * 100000000);
@@ -28,7 +29,6 @@ class Listener extends events {
     this.initSocket();
 
   }
-
 
   initSocket() {
     this.server = dgram.createSocket("udp4");
@@ -75,7 +75,7 @@ class Listener extends events {
     
     if (mlength < offset + bodyLength) return;
 
-    if (headerContent.msg_type == 1 ) {   /* k)ERemoteClientBroadcastMsgStatus */
+    if (headerContent.msg_type == messageTypes.ERemoteClientBroadcastMsg.k_ERemoteClientBroadcastMsgStatus) {
       var body_data = m.slice(offset, offset + bodyLength);
 
       this.parseBody(body_data, bodyLength);
@@ -83,13 +83,11 @@ class Listener extends events {
     }
     else 
     {
-// Debugging crap to help figure out wtf is going on
-       console.info("content type: ", headerContent.msg_type); 
-       if (headerContent.msg_type === 0) {
-         var body_data = m.slice(offset, offset + bodyLength);
-
-         var discoveryPacket = messageTypes.CMsgRemoteClientBroadcastDiscovery.decode(body_data);
-       }
+       // Useful for debugging - type 0 is a discovery packet from another client
+       //if (headerContent.msg_type === 0) {
+       //  var body_data = m.slice(offset, offset + bodyLength);
+       //  var discoveryPacket = messageTypes.CMsgRemoteClientBroadcastDiscovery.decode(body_data);
+       //}
     }
 
   }
@@ -114,33 +112,10 @@ class Listener extends events {
   broadcastDiscovery() {
     console.info("sending discovery packet - client broadcast discovery");
 
-    var headerBuf = messageTypes.CMsgRemoteClientBroadcastHeader.encode({
-      client_id: clientId,
-      msg_type: 0
-    });
     var body = messageTypes.CMsgRemoteClientBroadcastDiscovery.encode({
       seq_num: seqNum++
     });
-
-    var int32Length = 4;
-    var writeOffset = 0;
-    var totalMessageLength = 8 + int32Length + headerBuf.length + int32Length + body.length;
-    var messageBuf = new Buffer(totalMessageLength);
-    packetMagicBytes.copy(messageBuf,writeOffset);
-    writeOffset += packetMagicBytes.length;
-
-    messageBuf.writeUInt32LE(headerBuf.length, writeOffset);
-    writeOffset += int32Length;
-
-    headerBuf.copy(messageBuf, writeOffset);
-    writeOffset += headerBuf.length;
-    
-    messageBuf.writeUInt32LE(body.length, writeOffset);
-    writeOffset += int32Length;
-
-    body.copy(messageBuf, writeOffset);
-    
-    this.sendBroadcast(messageBuf);
+    this.sendSteamMessage(0, body);
   }
 
   /** 
@@ -149,12 +124,6 @@ class Listener extends events {
    */
   broadcastDiscovery2() {
     console.info("sending discovery packet - client broadcast status");
-
-    var headerBuf = messageTypes.CMsgRemoteClientBroadcastHeader.encode({
-      client_id: Math.ceil(Math.random() * 100000000),
-      msg_type: 1
-    });
-
     var body = messageTypes.CMsgRemoteClientBroadcastStatus.encode({
 
        version : 8,
@@ -173,39 +142,37 @@ class Listener extends events {
        screen_locked : false,
        games_running : true,
        mac_addresses : ["90-2b-34-39-a9-71"],
+    });
 
+    this.sendSteamMessage(1, body);
+
+  }
+  
+  sendSteamMessage(messageType, body) {
+    var headerBuf = messageTypes.CMsgRemoteClientBroadcastHeader.encode({
+      client_id: Math.ceil(Math.random() * 100000000),
+      msg_type: messageType
     });
 
     var int32Length = 4;
     var writeOffset = 0;
     var totalMessageLength = 8 + int32Length + headerBuf.length + int32Length + body.length;
-    var messageBuf = new Buffer(totalMessageLength);
-    packetMagicBytes.copy(messageBuf,writeOffset);
-    writeOffset += packetMagicBytes.length;
+    var messageBuf = new BufferAppender(totalMessageLength);
 
-    messageBuf.writeUInt32LE(headerBuf.length, writeOffset);
-    writeOffset += int32Length;
+    messageBuf.appendBuffer(packetMagicBytes);
+    messageBuf.appendUInt32LE(headerBuf.length);
+    messageBuf.appendBuffer(headerBuf);
+    messageBuf.appendUInt32LE(body.length);
+    messageBuf.appendBuffer(body);
 
-    headerBuf.copy(messageBuf, writeOffset);
-    writeOffset += headerBuf.length;
-    
-    messageBuf.writeUInt32LE(body.length, writeOffset);
-    writeOffset += int32Length;
-
-    body.copy(messageBuf, writeOffset);
-    
-    this.sendBroadcast(messageBuf);
-  }
-  
-  sendSteamMessage(messageType, message) {
-  
-
+    this.sendBroadcast(messageBuf.buffer);
   }
 }
 
 function create(opts) {
   return new Listener(opts);
 }
+
 
 module.exports = {
   create: create

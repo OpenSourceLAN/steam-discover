@@ -14,7 +14,8 @@ var protobuf = require("protocol-buffers"),
     bignum = require("bignum"),
     events = require("events");
 
-var seqNum = 1;
+var seqNum = 1,
+    clientId = Math.ceil(Math.random() * 100000000);
 
 var messageTypes = protobuf(fs.readFileSync("steamdiscover.proto"));
 
@@ -32,7 +33,11 @@ class Listener extends events {
   initSocket() {
     this.server = dgram.createSocket("udp4");
     this.server.on("message", this.receiveMessage.bind(this));
-    this.server.bind(this.opts.port || 27036, this.opts.ip || "0.0.0.0");
+    this.server.bind(this.opts.port || 27036, this.opts.ip || "10.0.0.100", () => {
+      this.server.setBroadcast(true);
+      this.emit("connected");
+    });
+
   }
 
   // Given a whole packet, read the header, and do stuff!
@@ -49,13 +54,13 @@ class Listener extends events {
     
     if (indicator.compare(packetMagicBytes) !== 0) {
       this.emit("invalid_packet", {reason: "magic bytes mismatch", message: m});
+      return;
     }
     
     offset += 8;
-  
     var headerLength = m.readUInt32LE(offset);
     offset += 4; // 32 bit 
-    
+
     if (mlength < offset + headerLength) return;
 
     var header = m.slice(offset, offset + headerLength);
@@ -79,12 +84,11 @@ class Listener extends events {
     else 
     {
 // Debugging crap to help figure out wtf is going on
-       console.log("content type: ", headerContent.msg_type); 
+       console.info("content type: ", headerContent.msg_type); 
        if (headerContent.msg_type === 0) {
          var body_data = m.slice(offset, offset + bodyLength);
 
          var discoveryPacket = messageTypes.CMsgRemoteClientBroadcastDiscovery.decode(body_data);
-         console.log(discoveryPacket);
        }
     }
 
@@ -94,7 +98,7 @@ class Listener extends events {
   parseBody(body_buffer, length) {
 
       var body_content = messageTypes.CMsgRemoteClientBroadcastStatus.decode(body_buffer);
-      
+
       var steamid_buffer = (body_content.users[0] || {} ).steamid;
       if (steamid_buffer) {
         var steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} )
@@ -102,11 +106,16 @@ class Listener extends events {
       } 
 
   }
+
+  sendBroadcast(buf) {
+    this.server.send(buf, 27036, '255.255.255.255');
+  }
+
   broadcastDiscovery() {
-    console.log("sending discovery packet");
+    console.info("sending discovery packet - client broadcast discovery");
 
     var headerBuf = messageTypes.CMsgRemoteClientBroadcastHeader.encode({
-      client_id: Math.ceil(Math.random() * 100000000),
+      client_id: clientId,
       msg_type: 0
     });
     var body = messageTypes.CMsgRemoteClientBroadcastDiscovery.encode({
@@ -131,22 +140,73 @@ class Listener extends events {
 
     body.copy(messageBuf, writeOffset);
     
-    this.server.send(messageBuf, 27036, '0.0.0.0');
+    this.sendBroadcast(messageBuf);
+  }
+
+  /** 
+   * This method is superfluous. I wrote it while debugging. 
+   * STeam clients don't reply to this, so hardly useful.
+   */
+  broadcastDiscovery2() {
+    console.info("sending discovery packet - client broadcast status");
+
+    var headerBuf = messageTypes.CMsgRemoteClientBroadcastHeader.encode({
+      client_id: Math.ceil(Math.random() * 100000000),
+      msg_type: 1
+    });
+
+    var body = messageTypes.CMsgRemoteClientBroadcastStatus.encode({
+
+       version : 8,
+       min_version : 6,
+       connect_port : 27036,
+       hostname : "squid",
+       enabled_services : 0,
+       ostype : 10,
+       is64bit : true ,
+//       users :  [{
+//               steamid: new Buffer([ /* your steam ID here in hex */]),
+//                auth_key_id:0 /* not sure what this is */ 
+//}],
+       euniverse : 1,
+       timestamp : (new Date()).getTime() / 1000,
+       screen_locked : false,
+       games_running : true,
+       mac_addresses : ["90-2b-34-39-a9-71"],
+
+    });
+
+    var int32Length = 4;
+    var writeOffset = 0;
+    var totalMessageLength = 8 + int32Length + headerBuf.length + int32Length + body.length;
+    var messageBuf = new Buffer(totalMessageLength);
+    packetMagicBytes.copy(messageBuf,writeOffset);
+    writeOffset += packetMagicBytes.length;
+
+    messageBuf.writeUInt32LE(headerBuf.length, writeOffset);
+    writeOffset += int32Length;
+
+    headerBuf.copy(messageBuf, writeOffset);
+    writeOffset += headerBuf.length;
+    
+    messageBuf.writeUInt32LE(body.length, writeOffset);
+    writeOffset += int32Length;
+
+    body.copy(messageBuf, writeOffset);
+    
+    this.sendBroadcast(messageBuf);
   }
   
+  sendSteamMessage(messageType, message) {
+  
+
+  }
 }
 
 function create(opts) {
-
   return new Listener(opts);
-
-  
-  
 }
-
-
 
 module.exports = {
   create: create
-
 };

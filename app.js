@@ -32,7 +32,9 @@ l.on("raw_message", function(m) {
 });
 l.on("invalid_packet", function(d) { 
     console.log("Invalid packet, reason: " + d.reason);
-    console.log(d.message.slice(0,8).toString('hex')); 
 });
 
-l.broadcastDiscovery();
+l.on("connected", () => {
+  l.broadcastDiscovery();
+});
+

@@ -2,15 +2,19 @@
 
 ## Steam Discoverer
 
-Listens to broadcast traffic for Steam clients advertising their in home streaming. 
+A tool to discover Steam clients on your network and find out what they are playing. 
 
-This traffic contains some useful metadata, like their Steam ID, OS version, if they're playing a game and other such lovely things. 
+### Features
+
+* Discovers steam clients on your LAN using the In Home Streaming discovery protocol
+* Looks up Steam API to see what they're playing
+* Stores data in DB (currently redis) for later analysis
 
 ### Roadmap
 
 * Make library to abstract this listening - expose just "we saw a client, here's details!"
-* Add discovery broadcast packet so we can ask Steam clients for their information, we don't have to wait for them to advertise
-* Use library to correlate with the Steam API to find out who is playing which game
+* Add web dashboard to get real time visualisation of the state of your LAN
+* Add configuration options, eg, immediately anonymise data (don't record steam ID), Steam API polling interval, 
 
 
 ### Installation
@@ -25,3 +29,4 @@ echo "Your-steam-api-key-here" > apikey.txt
 
 node app.js
 ```
+

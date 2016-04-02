@@ -23,13 +23,15 @@ class SteamApiWrapper extends events {
   getPlayerInfo(steamIds, callback) {
     if (typeof callback !== "function") { throw "no callback given"; }
 
-    this.steamClient.GetPlayerSummaries(steamIds).done(function(playersInfo,r) {
+    var client = this.steamClient.GetPlayerSummaries(steamIds);
+    client.done(function(playersInfo,r) {
         playersInfo = Array.isArray(playersInfo) ? playersInfo : [playersInfo];
         
         playersInfo.forEach(function(p) {
           callback(null, p);
         });
     });
+    client.fail(function(e) { console.error("Failed to fetch user list: ", e); });
   }
 }
 

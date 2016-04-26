@@ -118,36 +118,6 @@ class Listener extends events {
     this.sendSteamMessage(0, body);
   }
 
-  /** 
-   * This method is superfluous. I wrote it while debugging. 
-   * STeam clients don't reply to this, so hardly useful.
-   */
-  broadcastDiscovery2() {
-    console.info("sending discovery packet - client broadcast status");
-    var body = messageTypes.CMsgRemoteClientBroadcastStatus.encode({
-
-       version : 8,
-       min_version : 6,
-       connect_port : 27036,
-       hostname : "squid",
-       enabled_services : 0,
-       ostype : 10,
-       is64bit : true ,
-//       users :  [{
-//               steamid: new Buffer([ /* your steam ID here in hex */]),
-//                auth_key_id:0 /* not sure what this is */ 
-//}],
-       euniverse : 1,
-       timestamp : (new Date()).getTime() / 1000,
-       screen_locked : false,
-       games_running : true,
-       mac_addresses : ["90-2b-34-39-a9-71"],
-    });
-
-    this.sendSteamMessage(1, body);
-
-  }
-  
   sendSteamMessage(messageType, body) {
     var headerBuf = messageTypes.CMsgRemoteClientBroadcastHeader.encode({
       client_id: Math.ceil(Math.random() * 100000000),

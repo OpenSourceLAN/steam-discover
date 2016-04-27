@@ -7,7 +7,8 @@ var listener = require("./listener.js"),
     steam = require("./steamapiwrapper"), 
     fs = require("fs"),
     querybuffer = require('./querybuffer.js'),
-    redis = require('redis');
+    redis = require('redis'),
+    configurator = require('./configurator.js');
 
 var interval = 15000;
 

@@ -15,6 +15,8 @@ A tool to discover Steam clients on your network and find out what they are play
 * Make library to abstract this listening - expose just "we saw a client, here's details!"
 * Add web dashboard to get real time visualisation of the state of your LAN
 * Add configuration options, eg, immediately anonymise data (don't record steam ID), Steam API polling interval, 
+* Record ALLLLL the data (not just a brief summary of it)
+* Broadcast on multiple interfaces/subnets (eg, in case you have a multi-VLAN environment)
 
 
 ### Installation

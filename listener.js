@@ -4,8 +4,8 @@
 /**
  * TODO:
  *    * Add length checking everywhere in teh program to stop invalid packets breaking the app
- *    * Add a funciton to send a broadcast packet to prompt discovery replies 
- *    * ???
+ *    * Add a funciton to send a broadcast packet to prompt discovery replies
+ *    * Implement a way to broadcast out to >1 port because VLANs
  */
 
 var protobuf = require("protocol-buffers"),
@@ -13,7 +13,8 @@ var protobuf = require("protocol-buffers"),
     fs = require("fs"),
     bignum = require("bignum"),
     events = require("events"),
-    BufferAppender = require("./BufferAppender.js");
+    BufferAppender = require("./BufferAppender.js"),
+    addressFinder = require("./addressFinder.js");
 
 var seqNum = 1,
     clientId = Math.ceil(Math.random() * 100000000);
@@ -22,15 +23,29 @@ var messageTypes = protobuf(fs.readFileSync("steamdiscover.proto"));
 
 var packetMagicBytes = new Buffer([0xff, 0xff, 0xff, 0xff, 0x21, 0x4c, 0x5f, 0xa0]);
 
+function getOptions(opts) {
+    opts = opts || {};
+    if (opts.allInterfaces === undefined) {
+      opts.allInterfaces = true;
+    }
+    //opts.addresses = ["10.0.0.40"]
+
+}
+
 class Listener extends events {
   constructor(opts) {
     super();
-    this.opts = opts || {};
+    this.opts = getOptions(opts);
     this.initSocket();
 
   }
 
+
+
   initSocket() {
+
+    // CREATE MULTISOCKER HERE
+
     this.server = dgram.createSocket("udp4");
     this.server.on("message", this.receiveMessage.bind(this));
     this.server.bind(this.opts.port || 27036, this.opts.ip || "10.0.0.100", () => {
@@ -51,28 +66,28 @@ class Listener extends events {
     var offset = 0,
         mlength = m.length;
     var indicator = m.slice(0,8);
-    
+
     if (indicator.compare(packetMagicBytes) !== 0) {
       this.emit("invalid_packet", {reason: "magic bytes mismatch", message: m});
       return;
     }
-    
+
     offset += 8;
     var headerLength = m.readUInt32LE(offset);
-    offset += 4; // 32 bit 
+    offset += 4; // 32 bit
 
     if (mlength < offset + headerLength) return;
 
     var header = m.slice(offset, offset + headerLength);
     var headerContent =  messageTypes.CMsgRemoteClientBroadcastHeader.decode(header);
-  
+
     offset += headerLength;
-  
+
     if (mlength < offset + 4) return;
 
     var bodyLength = m.readUInt32LE(offset);
     offset += 4; // 32 bit
-    
+
     if (mlength < offset + bodyLength) return;
 
     if (headerContent.msg_type == messageTypes.ERemoteClientBroadcastMsg.k_ERemoteClientBroadcastMsgStatus) {
@@ -81,7 +96,7 @@ class Listener extends events {
       this.parseBody(body_data, bodyLength);
 
     }
-    else 
+    else
     {
        // Useful for debugging - type 0 is a discovery packet from another client
        //if (headerContent.msg_type === 0) {
@@ -92,7 +107,7 @@ class Listener extends events {
 
   }
 
-  // Given a buffer containing an k_ERemoteClientBroadcastMsgStatus, parse the Steam ID 
+  // Given a buffer containing an k_ERemoteClientBroadcastMsgStatus, parse the Steam ID
   parseBody(body_buffer, length) {
 
       var body_content = messageTypes.CMsgRemoteClientBroadcastStatus.decode(body_buffer);
@@ -101,7 +116,7 @@ class Listener extends events {
       if (steamid_buffer) {
         var steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} )
         this.emit("client_seen", { steam_id: steamid.toString() });
-      } 
+      }
 
   }
 

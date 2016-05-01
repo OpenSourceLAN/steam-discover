@@ -2,7 +2,7 @@
 <head><title>Steam stats</title></head>
 <body>
 
-<div id="graphtarget"></div>
+<div width="400" height="400" id="graphtarget"></div>
 
 <script type='text/javascript' src="http://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
@@ -10,8 +10,47 @@
 var socket = io.connect();
 
 socket.on("message", function(d) {
-	console.log(d);
+
+
+	var data = d.map(function(datapoint) {
+		return {
+			y: datapoint.hits,
+			legendText: datapoint.name,
+			label: datapoint.name
+		};
+	});
+	console.log(data);
+	var chart = new CanvasJS.Chart("graphtarget",
+	{
+		title:{
+			text: "Steam games people are playing"
+		},
+                animationEnabled: false,
+		legend:{
+			verticalAlign: "center",
+			horizontalAlign: "left",
+			fontSize: 20,
+			fontFamily: "Helvetica"
+		},
+		theme: "theme2",
+		data: [
+		{
+			type: "pie",
+			indexLabelFontFamily: "Garamond",
+			indexLabelFontSize: 20,
+			indexLabel: "{label} {y}%",
+			startAngle:-20,
+			showInLegend: false,
+			toolTipContent:"{legendText} {y}%",
+			dataPoints: data
+		}
+		]
+	});
+	chart.render();
 });
+
+
+
 </script>
 </body>
 </html>

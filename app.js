@@ -3,6 +3,11 @@
 // https://github.com/SteamRE/SteamKit/blob/master/Resources/Protobufs/steamclient/steammessages_remoteclient_discovery.proto
 // https://developer.valvesoftware.com/wiki/Steam_Web_API#GetPlayerSummaries_.28v0001.29
 
+// OS types (as seen in broadcast packets:
+// 10: win 7
+// 16: win 10???
+// 18446744069414584000: osx 10.10 (yosemite) (smells like an int/floatingpoint/overflow/something)
+
 var listener = require("./listener.js"),
     steam = require("./steamapiwrapper"), 
     fs = require("fs"),
@@ -58,7 +63,7 @@ var r = redis.createClient();
 
 var qb = new querybuffer(interval, (items) => {
   if (Array.isArray(items)) {
-    var ids  = items.map((p) => {return p.steam_id;});
+    var ids  = items.map((p) => {return p.users[0].steamid;});
     ids = getUnique(ids);
 
     console.log("!!!! Querying: ", ids.length);

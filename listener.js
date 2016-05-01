@@ -114,11 +114,12 @@ class Listener extends events {
   parseBody(body_buffer, length) {
 
       var body_content = messageTypes.CMsgRemoteClientBroadcastStatus.decode(body_buffer);
+      var firstUser = body_content.users[0];
+      var steamid_buffer = (firstUser || {} ).steamid;
 
-      var steamid_buffer = (body_content.users[0] || {} ).steamid;
       if (steamid_buffer) {
-        var steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} )
-        this.emit("client_seen", { steam_id: steamid.toString() });
+        firstUser.steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} )
+        this.emit("client_seen", body_content);
       }
 
   }

@@ -14,7 +14,7 @@ var protobuf = require("protocol-buffers"),
     bignum = require("bignum"),
     events = require("events"),
     BufferAppender = require("./BufferAppender.js"),
-    addressFinder = require("./addressFinder.js");
+    multiSocket = require("./multisocket.js");
 
 var seqNum = 1,
     clientId = Math.ceil(Math.random() * 100000000);
@@ -28,6 +28,7 @@ function getOptions(opts) {
     if (opts.allInterfaces === undefined) {
       opts.allInterfaces = true;
     }
+    return opts;
     //opts.addresses = ["10.0.0.40"]
 
 }
@@ -45,13 +46,15 @@ class Listener extends events {
   initSocket() {
 
     // CREATE MULTISOCKER HERE
-
-    this.server = dgram.createSocket("udp4");
+    this.server = new multiSocket({defaultPort: this.opts.port || 27036});
+    //this.server = dgram.createSocket("udp4");
     this.server.on("message", this.receiveMessage.bind(this));
-    this.server.bind(this.opts.port || 27036, this.opts.ip || "10.0.0.100", () => {
-      this.server.setBroadcast(true);
-      this.emit("connected");
-    });
+    // this.server.bind(this.opts.port || 27036, this.opts.ip || "10.0.0.100", () => {
+    //   this.server.setBroadcast(true);
+    setTimeout(() => {
+       this.emit("connected");
+     }, 500);
+    // });
 
   }
 

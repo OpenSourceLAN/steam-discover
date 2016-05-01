@@ -1,8 +1,11 @@
+"use strict";
+
 var events = require("events"),
+	dgram = require("dgram"),
     addressFinder = require("./addressFinder.js");
 
 function getOptions(opts) {
-	opts = opts || {}:
+	opts = opts || {};
 	var addressesGiven = Array.isArray(opts.addresses);
 
 	if (opts.allAddresses === undefined && addressesGiven == false) {
@@ -22,6 +25,8 @@ function getOptions(opts) {
 	}
 	// opts.defaultPort = 1234;
 	// opts.addresses = 
+
+	return opts;
 }
 
 /**
@@ -45,6 +50,7 @@ class multiSocket extends events {
 		this.sockets = [];
 
 		var addresses = this.getAddresses();
+		this.createSockets(addresses);
 
 	}
 
@@ -54,21 +60,23 @@ class multiSocket extends events {
 
 	send(buffer, port, destAddress) {
 		this.sockets.forEach((socket) => {
+			console.log(`Sending to address ${destAddress}`);
 			socket.send(buffer, port, destAddress);
 		});
 	}
 
 	createSockets(addresses) {
 		addresses.forEach((addr) => {
-			this.sockets.push(createSocket(addr));
+			this.sockets.push(this.createSocket(addr));
 		});
 	}
 
 	createSocket(address) {
-		var newSocket = dgram.createSocker(address.family);
-		newSocket.on("message", this.messageReceived);
-		newSocket.bind(address.port, address.ipAddress);
-		newSocket.setBroadcast(true);
+		var newSocket = dgram.createSocket(address.family);
+		newSocket.on("message", this.messageReceived.bind(this));
+		newSocket.bind(address.port, address.ipAddress,  () => {
+			newSocket.setBroadcast(true);
+		});
 		return newSocket;
 	}
 
@@ -77,7 +85,7 @@ class multiSocket extends events {
 
 		if (this.options.allAddresses) {
 			return systemAddresses.map((addr) => {
-				this.getAddress(addr,this.options.defaultPort);
+				return this.getAddress(addr,this.options.defaultPort);
 			});
 		} else {
 			return this.options.addresses.map((addr) => {
@@ -116,3 +124,5 @@ class ipAddress {
 		this.family = family;
 	}
 }
+
+module.exports = multiSocket;

@@ -3,6 +3,8 @@
  * Optionally filterable by interface name
  */
 
+var os = require("os");
+
 function getOptions(opts) {
 	opts = opts || {};
 
@@ -11,6 +13,7 @@ function getOptions(opts) {
 	if (opts.allInterfaces === undefined) {
 		opts.allInterfaces = true;
 	}
+	return opts;
 }
 
 function addressFinder(options) {
@@ -18,7 +21,7 @@ function addressFinder(options) {
 
 	var systemInterfaces = os.networkInterfaces();
 
-	if (opts.interfaces) {
+	if (options.interfaces) {
 		for (var ifaceName in systemInterfaces) {
 			if (opts.interfaces.indexOf(ifaceName) === -1) {
 				delete systemInterfaces[ifaceName];
@@ -27,7 +30,7 @@ function addressFinder(options) {
 	}
 
 	var addresses = getAddressesFromSystemInterfaces(systemInterfaces);
-
+	return addresses;
 }
 
 function getAddressesFromSystemInterfaces(interfaces) {

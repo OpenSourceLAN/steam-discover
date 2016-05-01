@@ -60,26 +60,51 @@ class multiSocket extends events {
 
 	send(buffer, port, destAddress) {
 		this.sockets.forEach((socket) => {
-			console.log(`Sending to address ${destAddress}`);
-			socket.send(buffer, port, destAddress);
+			var address = socket && socket.address ? socket.address() : {address: "ERROR"};
+
+			try {
+				console.log(`Sending to address ${destAddress} on ${address.address}:${address.port}`);
+				socket.send(buffer, port, destAddress);
+			}
+			catch (e) {
+				console.error(`Could not send on ${address.address}:${address.port}`);
+			}
 		});
 	}
 
 	createSockets(addresses) {
 		addresses.forEach((addr) => {
-			this.sockets.push(this.createSocket(addr));
+			this.createSocket(addr);
 		});
 	}
 
 	createSocket(address) {
 		var newSocket = dgram.createSocket(address.family);
 		newSocket.on("message", this.messageReceived.bind(this));
+
+		// Should we do the same thing on error? When does error happen?
+		newSocket.on("close", () => {
+			this.removeSocket(newSocket);
+		});
+
+		newSocket.on("error", (e) => {
+			console.error("The socket broke! ", e);
+		})
+
 		newSocket.bind(address.port, address.ipAddress,  () => {
 			newSocket.setBroadcast(true);
+			this.sockets.push(newSocket);
 		});
+
 		return newSocket;
 	}
 
+	removeSocket(socket) {
+		var index = this.sockets.indexOf(socket);
+		if (index >= 0) {
+			this.sockets.splice(index,1);
+		}
+	}
 	getAddresses() {
 		var systemAddresses = addressFinder();
 

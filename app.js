@@ -13,9 +13,13 @@ var listener = require("./listener.js"),
     fs = require("fs"),
     querybuffer = require('./querybuffer.js'),
     redis = require('redis'),
+    dbwrapper = require("./dbwrapper.js"),
     configurator = require('./configurator.js');
 
-var interval = 3000;
+var interval = 3000,
+    batchId = 1,
+    db = new dbwrapper("postgres://postgres@localhost/steam"),
+    debug = false;
 
 function getUnique (arr) {
   var seen = {};
@@ -42,15 +46,10 @@ var steamApiWrapper = steam.create(apiKey);
 
 var l = listener.create({port: 27036, ip: "0.0.0.0"} );
 l.on("client_seen", function(d) {
+  db.insertClient(d, batchId);
   if (qb) qb.addItem(d);
 });
-l.on("raw_message", function(m) {
-    var rinfo = m.sender;
-//    console.log(`got message from ${rinfo.address}:${rinfo.port}`);
-});
-l.on("invalid_packet", function(d) { 
-    console.log("Invalid packet, reason: " + d.reason);
-});
+
 
 l.on("connected", () => {
   setInterval( () => {
@@ -85,3 +84,14 @@ var qb = new querybuffer(interval, (items) => {
       });
     }
 });
+
+
+if (debug) {
+  l.on("raw_message", function(m) {
+    var rinfo = m.sender;
+  //    console.log(`got message from ${rinfo.address}:${rinfo.port}`);
+  });
+  l.on("invalid_packet", function(d) { 
+      console.log("Invalid packet, reason: " + d.reason);
+  });
+}

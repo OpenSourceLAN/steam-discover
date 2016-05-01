@@ -1,8 +1,11 @@
 
 -- postgres db init script
 
+DROP TABLE clientinfo;
+DROP TABLE accountinfo;
+
 CREATE TABLE clientinfo (
-	id bigint PRIMARY KEY,
+	id bigserial PRIMARY KEY,
 	steamid bigint null,
 	data jsonb,
 	batchid int null,
@@ -10,7 +13,7 @@ CREATE TABLE clientinfo (
 );
 
 CREATE TABLE accountinfo (
-	id bigint PRIMARY KEY,
+	id bigserial PRIMARY KEY,
 	steamid bigint null,
 	data jsonb,
 	batchid int null,

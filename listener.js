@@ -118,7 +118,7 @@ class Listener extends events {
       var steamid_buffer = (firstUser || {} ).steamid;
 
       if (steamid_buffer) {
-        firstUser.steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} )
+        firstUser.steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} ).toString();
         this.emit("client_seen", body_content);
       }
 

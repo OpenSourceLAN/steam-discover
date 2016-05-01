@@ -61,6 +61,8 @@ l.on("connected", () => {
 var r = redis.createClient();
 
 var qb = new querybuffer(interval, (items) => {
+  var thisBatch = batchId++;
+
   if (Array.isArray(items)) {
     var ids  = items.map((p) => {return p.users[0].steamid;});
     ids = getUnique(ids);
@@ -68,21 +70,23 @@ var qb = new querybuffer(interval, (items) => {
     console.log("!!!! Querying: ", ids.length);
 
     steamApiWrapper.getBulkPlayerInfo(ids, function(err,p) {
-        if (p.gameextrainfo) { 
-          var extraInfo = ` playing game '${p.gameextrainfo}'`;
-        }
-    
-        console.log(`Saw steam user ${p.personaName}${extraInfo||''}`);
+      db.insertAccount(p, thisBatch);
 
-        r.lpush("players", JSON.stringify({
-           name: p.personaName,
-           steam_id: p.steamid,
-           time: new Date(),
-           gameid: p.gameid,
-           gamename: p.gameextrainfo
-         }));
-      });
-    }
+      if (p.gameextrainfo) {
+        var extraInfo = ` playing game '${p.gameextrainfo}'`;
+      }
+
+      console.log(`Saw steam user ${p.personaName}${extraInfo||''}`);
+
+      r.lpush("players", JSON.stringify({
+        name: p.personaName,
+        steam_id: p.steamid,
+        time: new Date(),
+        gameid: p.gameid,
+        gamename: p.gameextrainfo
+      }));
+    });
+  }
 });
 
 

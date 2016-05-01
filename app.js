@@ -10,7 +10,7 @@ var listener = require("./listener.js"),
     redis = require('redis'),
     configurator = require('./configurator.js');
 
-var interval = 15000;
+var interval = 3000;
 
 function getUnique (arr) {
   var seen = {};
@@ -58,19 +58,12 @@ var r = redis.createClient();
 
 var qb = new querybuffer(interval, (items) => {
   if (Array.isArray(items)) {
-    var items = items.map((p) => {return p.steam_id;});
-    items = getUnique(items);
- 
-    while (items.length > 0) {
-      toGet = Math.min(100, items.length);
-      var ourItems = items.slice(0,toGet);
-      items = items.slice(toGet,items.length);
+    var ids  = items.map((p) => {return p.steam_id;});
+    ids = getUnique(ids);
 
-      var ids_string = ourItems.join(",");
-      console.log("!!!! Querying: ", ourItems.length);
+    console.log("!!!! Querying: ", ids.length);
 
-//return;
-      steamApiWrapper.getPlayerInfo(ids_string, function(err,p) {
+    steamApiWrapper.getBulkPlayerInfo(ids, function(err,p) {
         if (p.gameextrainfo) { 
           var extraInfo = ` playing game '${p.gameextrainfo}'`;
         }
@@ -83,10 +76,7 @@ var qb = new querybuffer(interval, (items) => {
            time: new Date(),
            gameid: p.gameid,
            gamename: p.gameextrainfo
- 
          }));
       });
     }
-  }
-
 });

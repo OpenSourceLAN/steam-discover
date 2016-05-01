@@ -33,6 +33,26 @@ class SteamApiWrapper extends events {
     });
     client.fail(function(e) { console.error("Failed to fetch user list: ", e); });
   }
+
+  /**
+   * steamIds - array of strings, each on a single steam ID
+   * callback - called once per steamid given
+   */
+  getBulkPlayerInfo(steamIds, callback) {
+    if (Array.isArray(steamIds) == false || typeof callback !== "function") {
+      console.error("invalid args to getBulkPlayerInfo");
+      return;
+    }
+
+    // clone array so that our modifications don't affect the caller's copy
+    steamIds = steamIds.slice(0);
+
+    while (steamIds.length > 0) {
+       var thisBatch = steamIds.splice(0,100);
+       var steamIdsString = thisBatch.join(",");
+       this.getPlayerInfo(steamIdsString, callback);
+    }
+  }
 }
 
 

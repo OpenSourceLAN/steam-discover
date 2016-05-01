@@ -2,7 +2,8 @@ var redis = require('redis'),
 	socketio = require('socket.io'),
 	http = require('http'),
 	url = require('url'),
-	fs = require('fs')
+	fs = require('fs'),
+	querybuffer = require("../querybuffer.js")
 	;
 /** 
  * TODO: wrap this in express or similar for less crappy hacks. 
@@ -27,5 +28,15 @@ server.on("request", (req, res) => {
 	}
 });
 
-
 server.listen(8000);
+
+var qb = new querybuffer(5000, (update) => {
+	if (update.length == 0)
+		return;
+});
+
+var redisClient = redis.createClient();
+redisClient.on("message", (channel, message) => {
+	qb.addItem(JSON.parse(message));
+});
+redisClient.subscribe("steam-update");

@@ -9,6 +9,9 @@
 <script type='text/javascript'>
 var socket = io.connect();
 
+socket.on("message", function(d) {
+	console.log(d);
+});
 </script>
 </body>
 </html>

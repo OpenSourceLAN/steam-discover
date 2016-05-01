@@ -58,7 +58,7 @@ l.on("connected", () => {
   l.broadcastDiscovery();
 });
  
-//var r = redis.createClient();
+var r = redis.createClient();
 
 var qb = new querybuffer(interval, (items) => {
   var thisBatch = batchId++;
@@ -71,6 +71,7 @@ var qb = new querybuffer(interval, (items) => {
 
     steamApiWrapper.getBulkPlayerInfo(ids, function(err,p) {
       db.insertAccount(p, thisBatch);
+      publishPlayerUpdateToRedis(p);
 
       if (p.gameextrainfo) {
         var extraInfo = ` playing game '${p.gameextrainfo}'`;
@@ -81,6 +82,13 @@ var qb = new querybuffer(interval, (items) => {
   }
 });
 
+function publishPlayerUpdateToRedis(player) {
+  r.publish("steam-update", JSON.stringify({
+    steamid: player.steamId,
+    gameid: player.gameid,
+    gamename: player.gameextrainfo
+  }));
+}
 
 if (debug) {
   l.on("raw_message", function(m) {

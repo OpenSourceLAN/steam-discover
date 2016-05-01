@@ -58,7 +58,7 @@ l.on("connected", () => {
   l.broadcastDiscovery();
 });
  
-var r = redis.createClient();
+//var r = redis.createClient();
 
 var qb = new querybuffer(interval, (items) => {
   var thisBatch = batchId++;
@@ -77,14 +77,6 @@ var qb = new querybuffer(interval, (items) => {
       }
 
       console.log(`Saw steam user ${p.personaName}${extraInfo||''}`);
-
-      r.lpush("players", JSON.stringify({
-        name: p.personaName,
-        steam_id: p.steamid,
-        time: new Date(),
-        gameid: p.gameid,
-        gamename: p.gameextrainfo
-      }));
     });
   }
 });

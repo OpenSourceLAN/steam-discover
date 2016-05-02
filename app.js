@@ -31,36 +31,7 @@ if (config.enableRedisUpdatePublishing) {
   var r = redis.createClient(config.redisConnectionString);
 }
 
-function getUnique (arr) {
-  var seen = {};
-  var ret = [];
-
-  arr.filter(function(item) {
-    if (!seen[item]) {
-      ret.push(item);
-      seen[item] = true;
-    }
-  });
-  return ret;
-}
-
 var steamApiWrapper = steam.create(apiKey);
-
-var l = listener.create({port: 27036, ip: "0.0.0.0"} );
-l.on("client_seen", function(d) {
-  db.insertClient(d, batchId);
-  if (qb) qb.addItem(d);
-});
-
-
-l.on("connected", () => {
-  setInterval( () => {
-    l.broadcastDiscovery();
-  }, interval);
-  l.broadcastDiscovery();
-});
- 
-
 
 var qb = new querybuffer(interval, (items) => {
   var thisBatch = batchId++;
@@ -69,7 +40,7 @@ var qb = new querybuffer(interval, (items) => {
     var ids  = items.map((p) => {return p.users[0].steamid;});
     ids = getUnique(ids);
 
-    console.log("!!!! Querying: ", ids.length);
+    console.log("!!!! Querying steam API for: ", ids.length);
 
     steamApiWrapper.getBulkPlayerInfo(ids, function(err,p) {
       db.insertAccount(p, thisBatch);
@@ -84,12 +55,42 @@ var qb = new querybuffer(interval, (items) => {
   }
 });
 
+var l = listener.create({port: 27036, ip: "0.0.0.0"} );
+l.on("client_seen", function(d) {
+  db.insertClient(d, batchId);
+  qb.addItem(d);
+});
+
+
+l.on("connected", () => {
+  setInterval( () => {
+    l.broadcastDiscovery();
+  }, interval);
+  l.broadcastDiscovery();
+});
+
+
 function publishPlayerUpdateToRedis(player) {
-  r.publish("steam-update", JSON.stringify({
-    steamid: player.steamId,
-    gameid: player.gameid,
-    gamename: player.gameextrainfo
-  }));
+  if (config.enableRedisUpdatePublishing) {
+    r.publish("steam-update", JSON.stringify({
+      steamid: player.steamId,
+      gameid: player.gameid,
+      gamename: player.gameextrainfo
+    }));
+  }
+}
+
+function getUnique (arr) {
+  var seen = {};
+  var ret = [];
+
+  arr.filter(function(item) {
+    if (!seen[item]) {
+      ret.push(item);
+      seen[item] = true;
+    }
+  });
+  return ret;
 }
 
 if (debug) {

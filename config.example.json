@@ -1,4 +1,5 @@
 {
+	"recordAllDataInPostgres": true,
 	"postgresConnectionString": "postgres://someuser:password@host/database",
 	"broadcastIntervalSeconds": 30,
 	"steamApiKey": "yourSteamApiKeyHere",

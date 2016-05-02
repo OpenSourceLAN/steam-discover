@@ -8,27 +8,31 @@ A tool to discover Steam clients on your network and find out what they are play
 
 * Discovers steam clients on your LAN using the In Home Streaming discovery protocol
 * Looks up Steam API to see what they're playing
-* Stores data in DB (currently redis) for later analysis
+* Stores data in DB (postgres) for later analysis
+* Optionally pipes data to a redis pub/sub queue
+* Live graph of what people are playing (requires redis pub/sub queue)
 
 ### Roadmap
 
 * Make library to abstract this listening - expose just "we saw a client, here's details!"
-* Add web dashboard to get real time visualisation of the state of your LAN
-* Add configuration options, eg, immediately anonymise data (don't record steam ID), Steam API polling interval, 
-* Record ALLLLL the data (not just a brief summary of it)
-* Broadcast on multiple interfaces/subnets (eg, in case you have a multi-VLAN environment)
-
+* Add more configuration options, eg, immediately anonymise data (don't record steam ID)
 
 ### Installation
 
 ```
 npm install
 
-# get patched version of certain steam-api file
-wget -O node_modules/steam-api/steam/containers/Player.js https://raw.githubusercontent.com/sirsquidness/steam-api-node/master/steam/containers/Player.js
+cp config.example.json config.json
 
-echo "Your-steam-api-key-here" > apikey.txt
+# Make sure to insert your own Steam API key and postgres connection info in here!
+editor config.json
+
+# Connect to your postgres DB, create a user and database, and run the dbinit.sql script
 
 node app.js
 ```
 
+### Live updating graph
+
+The `visualiser` directory contains another small app that provides a web page 
+with a live updating graph of which games people are playing. 

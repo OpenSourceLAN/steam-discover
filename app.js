@@ -17,18 +17,21 @@ var listener = require("./listener.js"),
 
 var config = require("./config.json");
 
-if (!config.steamApiKey || !config.postgresConnectionString) {
+if (!config.steamApiKey || (config.recordAllDataInPostgres && !config.postgresConnectionString)) {
   throw "steamApiKey and postgresConnectionString are required keys in config.json";
 }
 
 var interval = (config.broadcastIntervalSeconds || 30) * 1000,
     batchId = 1,
-    db = new dbwrapper(config.postgresConnectionString),
     debug = !!config.enableDebugConsoleMessages,
     apiKey = config.steamApiKey;
 
 if (config.enableRedisUpdatePublishing) {
   var r = redis.createClient(config.redisConnectionString);
+}
+
+if (config.recordAllDataInPostgres) {
+  var db = new dbwrapper(config.postgresConnectionString);
 }
 
 var steamApiWrapper = steam.create(apiKey);
@@ -43,7 +46,9 @@ var qb = new querybuffer(interval, (items) => {
     console.log("!!!! Querying steam API for: ", ids.length);
 
     steamApiWrapper.getBulkPlayerInfo(ids, function(err,p) {
-      db.insertAccount(p, thisBatch);
+      if (config.recordAllDataInPostgres) {
+        db.insertAccount(p, thisBatch);
+      }
       publishPlayerUpdateToRedis(p);
 
       if (p.gameextrainfo) {
@@ -57,7 +62,9 @@ var qb = new querybuffer(interval, (items) => {
 
 var l = listener.create({port: 27036, ip: "0.0.0.0"} );
 l.on("client_seen", function(d) {
-  db.insertClient(d, batchId);
+  if (config.recordAllDataInPostgres) {
+    db.insertClient(d, batchId);
+  }
   qb.addItem(d);
 });
 

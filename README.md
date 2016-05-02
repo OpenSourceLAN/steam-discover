@@ -8,7 +8,7 @@ A tool to discover Steam clients on your network and find out what they are play
 
 * Discovers steam clients on your LAN using the In Home Streaming discovery protocol
 * Looks up Steam API to see what they're playing
-* Stores data in DB (postgres) for later analysis
+* Optionally stores data in DB (postgres) for later analysis
 * Optionally pipes data to a redis pub/sub queue
 * Live graph of what people are playing (requires redis pub/sub queue)
 

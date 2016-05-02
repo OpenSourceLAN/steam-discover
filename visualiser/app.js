@@ -4,8 +4,13 @@ var redis = require('redis'),
 	http = require('http'),
 	url = require('url'),
 	fs = require('fs'),
-	querybuffer = require("../querybuffer.js")
-	;
+	querybuffer = require("../querybuffer.js"),
+	config = require('./config.json');
+
+var expireInterval = (config.expireStaleUsersAfterSeconds || 120) * 1000,
+	graphUpdateInterval = (config.graphUpdateIntervalSeconds || 10) * 1000,
+	listenPort = config.listenPort || 8000;
+
 /** 
  * TODO: wrap this in express or similar for less crappy hacks. 
  */
@@ -29,13 +34,11 @@ server.on("request", (req, res) => {
 	}
 });
 
-server.listen(8000);
+server.listen(listenPort);
 
 // This bit will probably scale badly, but it's bed time now and I want to get something working
 var playerState = {};
-var qb = new querybuffer(5000, (update) => {
-	if (update.length == 0)
-		return;
+var qb = new querybuffer(graphUpdateInterval, (update) => {
 	var now = new Date();
 
 	// Update teh state of any seen players
@@ -47,7 +50,8 @@ var qb = new querybuffer(5000, (update) => {
 	var games = new gameCounter();
 
 	// Purge any old players, aggregate others
-	var expire = new Date(now - 2*60*1000); // 2 minutes
+	var expire = new Date(now - expireInterval); // 2 minutes
+
 	Object.keys(playerState).forEach((key) => {
 		var player = playerState[key];
 		if (player.timestamp < expire) {

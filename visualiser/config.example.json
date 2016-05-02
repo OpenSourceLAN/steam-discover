@@ -1,0 +1,5 @@
+{
+	"listenPort": 8000,
+	"graphUpdateIntervalSeconds": 10,
+	"expireStaleUsersAfterSeconds": 120
+}

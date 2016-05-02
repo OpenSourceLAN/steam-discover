@@ -13,13 +13,23 @@ var listener = require("./listener.js"),
     fs = require("fs"),
     querybuffer = require('./querybuffer.js'),
     redis = require('redis'),
-    dbwrapper = require("./dbwrapper.js"),
-    configurator = require('./configurator.js');
+    dbwrapper = require("./dbwrapper.js");
 
-var interval = 3000,
+var config = require("./config.json");
+
+if (!config.steamApiKey || !config.postgresConnectionString) {
+  throw "steamApiKey and postgresConnectionString are required keys in config.json";
+}
+
+var interval = (config.broadcastIntervalSeconds || 30) * 1000,
     batchId = 1,
-    db = new dbwrapper("postgres://postgres@localhost/steam"),
-    debug = false;
+    db = new dbwrapper(config.postgresConnectionString),
+    debug = !!config.enableDebugConsoleMessages,
+    apiKey = config.steamApiKey;
+
+if (config.enableRedisUpdatePublishing) {
+  var r = redis.createClient(config.redisConnectionString);
+}
 
 function getUnique (arr) {
   var seen = {};
@@ -32,14 +42,6 @@ function getUnique (arr) {
     }
   });
   return ret;
-}
-
-try {
-    var apiKey = fs.readFileSync("./apikey.txt").toString().replace(/[\W \n\r]/g, "");
-} catch (e)
-{ 
-    console.error("Create the file 'apikey.txt' in the working directory, which contains your API key from http://steamcommunity.com/dev/apikey"); 
-    require("process").exit(1);
 }
 
 var steamApiWrapper = steam.create(apiKey);
@@ -58,7 +60,7 @@ l.on("connected", () => {
   l.broadcastDiscovery();
 });
  
-var r = redis.createClient();
+
 
 var qb = new querybuffer(interval, (items) => {
   var thisBatch = batchId++;
@@ -93,7 +95,7 @@ function publishPlayerUpdateToRedis(player) {
 if (debug) {
   l.on("raw_message", function(m) {
     var rinfo = m.sender;
-  //    console.log(`got message from ${rinfo.address}:${rinfo.port}`);
+    console.log(`got message from ${rinfo.address}:${rinfo.port}`);
   });
   l.on("invalid_packet", function(d) { 
       console.log("Invalid packet, reason: " + d.reason);

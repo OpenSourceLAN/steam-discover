@@ -1,3 +1,4 @@
 apikey.txt
 node_modules/
-*.swp
+*.sw[op]
+config.json

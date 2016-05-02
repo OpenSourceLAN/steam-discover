@@ -1,0 +1,10 @@
+{
+	"postgresConnectionString": "postgres://someuser:password@host/database",
+	"broadcastIntervalSeconds": 30,
+	"steamApiKey": "yourSteamApiKeyHere",
+	"redisConnectionString": null,
+	"enableRedisUpdatePublishing": true,
+	"enableDebugConsoleMessages": false,
+	"broadcastOnAllInterfaces": true,
+	"broadcastOnInterfaces": []
+}

@@ -53,6 +53,15 @@ No. Not with this tool, as this is a very Steam-specific tool.
 The other services have APIs, and maybe there is a way to identify
 users on your LAN - I don't know, I haven't looked :)
 
+**We run VLANs at our LAN. Will this still work?**
+
+Yes. You have two options. 
+
+1. Set up your router to rebroadcast UDP port 27036 packets with a source 
+IP coming from your host running this
+2. Trunk all of your VLANs to the host running this, and set up an interface
+for each one. This tool will broadcast out on every IPv4 interface on the system. (configuration for that coming soon)
+
 **Do you have any screenshots?**
 
 Not yet. It's just a pie chart and a text console. Very exciting stuff. 

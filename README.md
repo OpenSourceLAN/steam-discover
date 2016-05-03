@@ -22,11 +22,11 @@ Then, we query the Steam API to find out what each Steam ID is doing.
 The API returns the user's display name and the current game. Hey presto,
 we have our data!
 
-There are two caveats here - 
+There are three caveats here - 
 
-1) If a user does not have steam home broadcast enabled, we will not know that they exist
-2) If a user has their Steam profile set to private, we will be able to see what their display name is, but not if they're online or which game they're playing
-
+1. If a user does not have steam home broadcast enabled, we will not know that they exist
+2. If a user has their Steam profile set to private, we will be able to see what their display name is, but not if they're online or which game they're playing
+3. The Steam API is limited to "100k requests per hour" (or something like that, per the terms of use) - so if you're at a giant LAN party, don't set this to poll the API every 2 seconds. 
 
 ### Roadmap
 

@@ -94,6 +94,26 @@ Using the `config.json` file, you can disable postgres if you don't want
 to save the data. You can also enable Redis to enable the usage of the 
 live updating graph (see next section)
 
+### Data Sinks
+
+In the configuration file, you can specify a number of places to send data (sinks). 
+These are currently:
+
+* Postgres
+* Redis
+* UDP
+
+You can specify each one multiple times if, eg, you want to send to multiple UDP ports for
+whatever reason.
+
+Using Postgres, you will need to initialise a database with the `dbinit.sql` script.
+
+The Redis sink is currently used for the visualiser (see below), so only sends a very
+limited subset of data to the pub/sub queue. If someone asks, I'll make it send all
+data to configurable pub/sub queues too.
+
+I plan to add TCP and Syslog in the near future. 
+
 ### Live updating graph
 
 The `visualiser` directory contains another small app that provides a web page 

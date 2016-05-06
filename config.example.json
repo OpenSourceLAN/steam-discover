@@ -11,6 +11,7 @@
 			"type": "udp",
 			"enabled": false,
 			"options": {
+				"udp6": false,
 				"host": "127.0.0.1",
 				"port": 999
 			}

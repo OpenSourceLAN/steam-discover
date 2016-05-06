@@ -13,12 +13,18 @@ var listener = require("./listener.js"),
     fs = require("fs"),
     querybuffer = require('./querybuffer.js'),
     redis = require('redis'),
-    dbwrapper = require("./dbwrapper.js");
+    dbwrapper = require("./dbwrapper.js"),
+    sinkWrapper = require('./sinkWrapper.js');
 
 var config = require("./config.json");
 
-if (!config.steamApiKey || (config.recordAllDataInPostgres && !config.postgresConnectionString)) {
-  throw "steamApiKey and postgresConnectionString are required keys in config.json";
+var sinker = new sinkWrapper(config.sinks);
+
+if (!config.steamApiKey) {
+  throw "steamApiKey must be set in config";
+}
+if (sinks.hasSinks() == 0) {
+  throw "No data sinks set in config file, nothing for this app to do! :(";
 }
 
 var interval = (config.broadcastIntervalSeconds || 30) * 1000,

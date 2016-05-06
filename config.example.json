@@ -1,10 +1,30 @@
 {
-	"recordAllDataInPostgres": true,
-	"postgresConnectionString": "postgres://someuser:password@host/database",
+	"data-sinks": [
+		{
+			"type": "postgres",
+			"enabled": true,
+			"options": {
+				"connectionString": "postgres://someuser:password@host/database"
+			}
+		},
+		{
+			"type": "udp",
+			"enabled": false,
+			"options": {
+				"host": "127.0.0.1",
+				"port": 999
+			}
+		},
+		{
+			"type": "redis",
+			"enabled": true,
+			"options": {
+				"connectionString": null
+			}
+		}
+	],
 	"broadcastIntervalSeconds": 30,
 	"steamApiKey": "yourSteamApiKeyHere",
-	"redisConnectionString": null,
-	"enableRedisUpdatePublishing": true,
 	"enableDebugConsoleMessages": false,
 	"broadcastOnAllInterfaces": true,
 	"broadcastOnInterfaces": []

@@ -15,6 +15,33 @@ var listener = require("./listener.js"),
     sinkWrapper = require('./sinkWrapper.js');
 
 var config = require("./config.json");
+config['data-sinks'] = config['data-sinks'] || [];
+
+// Backwards compatibility for the old config file format
+if (config.recordAllDataInPostgres && config.postgresConnectionString) {
+    if (config['data-sinks'].filter((s) => { return s.type == 'postgres' && s.enabled == true}).length == 0)
+    {
+        config['data-sinks'].push({
+            type: "postgres",
+            enabled: true,
+            options: {
+                connectionString: config.postgresConnectionString
+            }
+        });
+    }
+}
+if (config.enableRedisUpdatePublishing) {
+  if (config['data-sinks'].filter((s) => { return s.type == 'redis' && s.enabled == true}).length == 0)
+    {
+        config['data-sinks'].push({
+            type: "redis",
+            enabled: true,
+            options: {
+                connectionString: config.redisConnectionString
+            }
+        });
+    }
+}
 
 var sinker = new sinkWrapper(config["data-sinks"]);
 

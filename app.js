@@ -57,6 +57,7 @@ var qb = new querybuffer(interval, (items) => {
 var l = listener.create({port: 27036, ip: "0.0.0.0"} );
 l.on("client_seen", function(d) {
   sinker.insertClient(d, batchId);
+  qb.addItem(d);
 });
 
 

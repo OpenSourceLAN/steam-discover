@@ -12,7 +12,6 @@ var listener = require("./listener.js"),
     steam = require("./steamapiwrapper"), 
     fs = require("fs"),
     querybuffer = require('./querybuffer.js'),
-    redis = require('redis'),
     sinkWrapper = require('./sinkWrapper.js');
 
 var config = require("./config.json");

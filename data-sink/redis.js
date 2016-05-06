@@ -1,8 +1,11 @@
 "use strict";
 
-class redis {
-	constructor(conString, readyCallback) {
-		this.conString = conString;
+var redis = require('redis');
+
+class redisWrapper {
+	constructor(options, readyCallback) {
+		this.conString = options.connectionString;
+		this.redis = redis.createClient(this.conString);
 	}
 
 	insertClient(clientInfo, batchId) {
@@ -12,12 +15,12 @@ class redis {
 	}
 
 	insertAccount(accountInfo, batchId) {
-	    r.publish("steam-update", JSON.stringify({
-			steamid: player.steamId,
-			gameid: player.gameid,
-			gamename: player.gameextrainfo
+	    this.redis.publish("steam-update", JSON.stringify({
+			steamid: accountInfo.steamId,
+			gameid: accountInfo.gameid,
+			gamename: accountInfo.gameextrainfo
 	    }));
 	}
 }
 
-module.exports = redis;
+module.exports = redisWrapper;

@@ -5,8 +5,8 @@ var pg = require("pg");
 
 
 class dbwrapper {
-	constructor(conString, readyCallback) {
-		this.conString = conString;
+	constructor(options, readyCallback) {
+		this.conString = options.connectionString;
 	}
 
 	insertClient(clientInfo, batchId) {

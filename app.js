@@ -13,17 +13,16 @@ var listener = require("./listener.js"),
     fs = require("fs"),
     querybuffer = require('./querybuffer.js'),
     redis = require('redis'),
-    dbwrapper = require("./dbwrapper.js"),
     sinkWrapper = require('./sinkWrapper.js');
 
 var config = require("./config.json");
 
-var sinker = new sinkWrapper(config.sinks);
+var sinker = new sinkWrapper(config["data-sinks"]);
 
 if (!config.steamApiKey) {
   throw "steamApiKey must be set in config";
 }
-if (sinks.hasSinks() == 0) {
+if (sinker.hasSinks() == 0) {
   throw "No data sinks set in config file, nothing for this app to do! :(";
 }
 
@@ -31,14 +30,6 @@ var interval = (config.broadcastIntervalSeconds || 30) * 1000,
     batchId = 1,
     debug = !!config.enableDebugConsoleMessages,
     apiKey = config.steamApiKey;
-
-if (config.enableRedisUpdatePublishing) {
-  var r = redis.createClient(config.redisConnectionString);
-}
-
-if (config.recordAllDataInPostgres) {
-  var db = new dbwrapper(config.postgresConnectionString);
-}
 
 var steamApiWrapper = steam.create(apiKey);
 
@@ -52,11 +43,8 @@ var qb = new querybuffer(interval, (items) => {
     console.log("!!!! Querying steam API for: ", ids.length);
 
     steamApiWrapper.getBulkPlayerInfo(ids, function(err,p) {
-      if (config.recordAllDataInPostgres) {
-        db.insertAccount(p, thisBatch);
-      }
-      publishPlayerUpdateToRedis(p);
-
+      sinker.insertAccount(p, thisBatch)
+      
       if (p.gameextrainfo) {
         var extraInfo = ` playing game '${p.gameextrainfo}'`;
       }
@@ -68,10 +56,7 @@ var qb = new querybuffer(interval, (items) => {
 
 var l = listener.create({port: 27036, ip: "0.0.0.0"} );
 l.on("client_seen", function(d) {
-  if (config.recordAllDataInPostgres) {
-    db.insertClient(d, batchId);
-  }
-  qb.addItem(d);
+  sinker.insertClient(d, batchId);
 });
 
 
@@ -81,17 +66,6 @@ l.on("connected", () => {
   }, interval);
   l.broadcastDiscovery();
 });
-
-
-function publishPlayerUpdateToRedis(player) {
-  if (config.enableRedisUpdatePublishing) {
-    r.publish("steam-update", JSON.stringify({
-      steamid: player.steamId,
-      gameid: player.gameid,
-      gamename: player.gameextrainfo
-    }));
-  }
-}
 
 function getUnique (arr) {
   var seen = {};

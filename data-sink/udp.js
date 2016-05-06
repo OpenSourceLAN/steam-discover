@@ -9,4 +9,13 @@ class udp {
 	constructor(opts) {
 
 	}
+	insertClient(clientInfo, batchId) {
+		
+	}
+
+	insertAccount(accountInfo, batchId) {
+
+	}
 }
+
+module.exports = udp;

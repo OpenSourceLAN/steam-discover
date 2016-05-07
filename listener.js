@@ -98,7 +98,8 @@ class Listener extends events {
 
       var bodyParsed = this.parseBody(bodyData, bodyLength);
       if (bodyParsed) {
-        this.emit("client_seen", bodyParsed, rinfo);
+        bodyParsed["ip_address"] = rinfo.address;
+        this.emit("client_seen", bodyParsed);
       }
 
     }

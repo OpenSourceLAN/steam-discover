@@ -94,9 +94,12 @@ class Listener extends events {
     if (mlength < offset + bodyLength) return;
 
     if (headerContent.msg_type == messageTypes.ERemoteClientBroadcastMsg.k_ERemoteClientBroadcastMsgStatus) {
-      var body_data = m.slice(offset, offset + bodyLength);
+      var bodyData = m.slice(offset, offset + bodyLength);
 
-      this.parseBody(body_data, bodyLength);
+      var bodyParsed = this.parseBody(bodyData, bodyLength);
+      if (bodyParsed) {
+        this.emit("client_seen", bodyParsed, rinfo);
+      }
 
     }
     else
@@ -111,17 +114,16 @@ class Listener extends events {
   }
 
   // Given a buffer containing an k_ERemoteClientBroadcastMsgStatus, parse the Steam ID
-  parseBody(body_buffer, length) {
+  parseBody(bodyBuffer, length) {
 
-      var body_content = messageTypes.CMsgRemoteClientBroadcastStatus.decode(body_buffer);
-      var firstUser = body_content.users[0];
-      var steamid_buffer = (firstUser || {} ).steamid;
+      var bodyContent = messageTypes.CMsgRemoteClientBroadcastStatus.decode(bodyBuffer);
+      var firstUser = bodyContent.users[0];
+      var steamIdBuffer = (firstUser || {} ).steamid;
 
-      if (steamid_buffer) {
-        firstUser.steamid = bignum.fromBuffer(steamid_buffer, { endian: "little", size: 'auto'} ).toString();
-        this.emit("client_seen", body_content);
+      if (steamIdBuffer) {
+        firstUser.steamid = bignum.fromBuffer(steamIdBuffer, { endian: "little", size: 'auto'} ).toString();
+        return bodyContent;
       }
-
   }
 
   sendBroadcast(buf) {

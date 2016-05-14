@@ -44,10 +44,12 @@ class betterSteamWrapper {
         data += d; // TODO: do this less shit
       });
       res.on("end", () => {
+        if (res.statusCode !== 200) { return callback("Unepected status code from steam API: " + res.statusCode); }
+
         var response;
         try {
           response = JSON.parse(data);
-        } catch (e) { callback(e); }
+        } catch (e) { return callback(e); }
 
         response.response.players.forEach((p) => {
           callback(null, p);

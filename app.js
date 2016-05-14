@@ -76,7 +76,7 @@ var qb = new querybuffer(interval, (items) => {
         var extraInfo = ` playing game '${p.gameextrainfo}'`;
       }
 
-      console.log(`Saw steam user ${p.personaName}${extraInfo||''}`);
+      console.log(`Saw steam user ${p.personaname}${extraInfo||''}`);
     });
   }
 });

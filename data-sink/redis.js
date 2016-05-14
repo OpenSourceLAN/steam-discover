@@ -16,7 +16,7 @@ class redisWrapper {
 
 	insertAccount(accountInfo, batchId) {
 	    this.redis.publish("steam-update", JSON.stringify({
-			steamid: accountInfo.steamId,
+			steamid: accountInfo.steamid,
 			gameid: accountInfo.gameid,
 			gamename: accountInfo.gameextrainfo
 	    }));

@@ -50,7 +50,7 @@ class betterSteamWrapper {
         } catch (e) { callback(e); }
 
         response.response.players.forEach((p) => {
-          callback(null, p); console.log(p);
+          callback(null, p);
         });
       });
 

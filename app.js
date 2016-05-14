@@ -69,6 +69,7 @@ var qb = new querybuffer(interval, (items) => {
     console.log("!!!! Querying steam API for: ", ids.length);
 
     steamApiWrapper.getBulkPlayerInfo(ids, function(err,p) {
+      if (err) { return console.error(err); }
       sinker.insertAccount(p, thisBatch)
       
       if (p.gameextrainfo) {

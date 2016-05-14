@@ -9,7 +9,7 @@
 // 18446744069414584000: osx 10.10 (yosemite) (smells like an int/floatingpoint/overflow/something)
 
 var listener = require("./listener.js"),
-    steam = require("./steamapiwrapper"), 
+    steam =  require("./betterSteamWrapper.js"), //require("./steamapiwrapper"), 
     fs = require("fs"),
     querybuffer = require('./querybuffer.js'),
     sinkWrapper = require('./sinkWrapper.js');
@@ -44,7 +44,7 @@ if (config.enableRedisUpdatePublishing) {
 }
 
 var sinker = new sinkWrapper(config["data-sinks"]);
-
+console.log(sinker);
 if (!config.steamApiKey) {
   throw "steamApiKey must be set in config";
 }
@@ -57,7 +57,7 @@ var interval = (config.broadcastIntervalSeconds || 30) * 1000,
     debug = !!config.enableDebugConsoleMessages,
     apiKey = config.steamApiKey;
 
-var steamApiWrapper = steam.create(apiKey);
+var steamApiWrapper = new steam(apiKey);
 
 var qb = new querybuffer(interval, (items) => {
   var thisBatch = batchId++;

@@ -70,7 +70,13 @@ Not yet. It's just a pie chart and a text console. Very exciting stuff.
 
 * Make library to abstract this listening - expose just "we saw a client, here's details!"
 * Add more configuration options, eg, immediately anonymise data (don't record steam ID)
-* Add feature to auto-anonymise data, so that 
+* Add feature to auto-anonymise data, so that privacy isn't much of a concern
+
+### Requirements
+
+* A recent version of node. Tested with `v5.7.1`. 
+* For data storage in postgres, a postgres server (optional)
+* For the live visualisation service, Redis (optional)
 
 ### Installation
 
@@ -111,6 +117,9 @@ Using Postgres, you will need to initialise a database with the `dbinit.sql` scr
 The Redis sink is currently used for the visualiser (see below), so only sends a very
 limited subset of data to the pub/sub queue. If someone asks, I'll make it send all
 data to configurable pub/sub queues too.
+
+The UDP sink can be used to send the data to your own application or log processing 
+applications like Logstash. 
 
 I plan to add TCP and Syslog in the near future. 
 

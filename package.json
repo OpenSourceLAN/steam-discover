@@ -13,7 +13,6 @@
     "pg": "^4.5.5",
     "posix-getopt": "^1.2.0",
     "protocol-buffers": "^3.1.6",
-    "redis": "^2.5.2",
-    "steam-api": "sirsquidness/steam-api-node#master"
+    "redis": "^2.5.2" 
   }
 }

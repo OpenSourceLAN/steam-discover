@@ -12,6 +12,7 @@ class udp {
 	constructor(options) {
 		this.options = options;
 		this.socket = dgram.createSocket(this.options.udp6 ? 'udp6' : 'udp4');
+		this.excludeFields = options.excludeFields;
 	}
 	insertClient(clientInfo, batchId) {
 		// Because the motivation for adding UDP support is to send the data to logstash, 

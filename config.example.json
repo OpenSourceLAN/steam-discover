@@ -20,9 +20,16 @@
 			"type": "redis",
 			"enabled": true,
 			"options": {
-				"connectionString": null
+				"connectionString": null,
+				"excludeFields": [
+					"profileurl"
+				]
 			}
 		}
+	],
+	"excludeFields": [
+		"avatarmedium",
+		"avatarfull"
 	],
 	"broadcastIntervalSeconds": 30,
 	"steamApiKey": "yourSteamApiKeyHere",

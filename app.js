@@ -43,7 +43,7 @@ if (config.enableRedisUpdatePublishing) {
     }
 }
 
-var sinker = new sinkWrapper(config["data-sinks"]);
+var sinker = new sinkWrapper(config["data-sinks"], config["excludeFields"]);
 console.log(sinker);
 if (!config.steamApiKey) {
   throw "steamApiKey must be set in config";

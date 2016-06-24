@@ -123,6 +123,12 @@ applications like Logstash.
 
 I plan to add TCP and Syslog in the near future. 
 
+### Excluding fields
+
+If you wish to exclude a certain field entirely or from a specific data sink, you 
+can do so in the `excludeFields` configuration option. This can be done globally
+or per-sink. See the example config file. Names are case sensitive. 
+
 ### Live updating graph
 
 The `visualiser` directory contains another small app that provides a web page 

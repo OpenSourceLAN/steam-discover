@@ -6,6 +6,7 @@ class redisWrapper {
 	constructor(options, readyCallback) {
 		this.conString = options.connectionString;
 		this.redis = redis.createClient(this.conString);
+		this.excludeFields = options.excludeFields;
 	}
 
 	insertClient(clientInfo, batchId) {

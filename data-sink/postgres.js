@@ -7,6 +7,7 @@ var pg = require("pg");
 class dbwrapper {
 	constructor(options, readyCallback) {
 		this.conString = options.connectionString;
+		this.excludeFields = options.excludeFields;
 	}
 
 	insertClient(clientInfo, batchId) {

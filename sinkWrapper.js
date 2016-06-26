@@ -3,17 +3,15 @@
 class sinkWrapper {
 	constructor(sinkConfig, globallyExcludedFields) {
 		this.sinks = [];
-		this.globallyExcludedFields = globallyExcludedFields;
 
 		sinkConfig.forEach((sink) => {
-		  if (!sink.enabled) {
-		    return;
-		  }
-		  var type = require(`./data-sink/${sink.type}.js` );
+			if (!sink.enabled) {
+				return;
+			}
+			var type = require(`./data-sink/${sink.type}.js` );
 
-		  // TODO: should probably do callbacks/promises here
-		  sink.options.excludeFields = sink.options.excludeFields || [];
-		  this.sinks.push(new type(sink.options));
+			sink.options.excludeFields = this.getFieldsToExclude(globallyExcludedFields, sink.options.excludeFields);
+			this.sinks.push(new type(sink.options));
 		});
 	}
 
@@ -35,10 +33,26 @@ class sinkWrapper {
 		return this.sinks.length > 0;
 	}
 
-	exceptFields(input, customExcept) {
+	/**
+	 * Combines the global exclude list and a sink-specific one
+	 */
+	getFieldsToExclude(globalFields, customFields) {
+		var allFields = (customFields || []).concat(globalFields || []);
+		if (allFields.length == 0) {
+			return null;
+		} else {
+			return allFields;
+		}
+	}
+
+	exceptFields(input, exceptFields) {
+		if (!exceptFields) {
+			return input;
+		}
+
 		var out = {};
 		Object.keys(input).forEach((k) => {
-			if (customExcept.indexOf(k) === -1 && this.globallyExcludedFields.indexOf(k) === -1) {
+			if (exceptFields.indexOf(k) === -1) {
 				out[k] = input[k];
 			}
 		})

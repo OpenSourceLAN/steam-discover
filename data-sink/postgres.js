@@ -21,7 +21,7 @@ class dbwrapper {
 
 			client.query("INSERT INTO clientinfo (steamid, data, batchid) VALUES ($1::bigint, $2::jsonb, $3)",
 				[
-					steamid.toString(),
+					steamId.toString(),
 					clientInfo,
 					batchId
 				],

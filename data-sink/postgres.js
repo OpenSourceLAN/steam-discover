@@ -21,7 +21,7 @@ class dbwrapper {
 
 			client.query("INSERT INTO clientinfo (steamid, data, batchid) VALUES ($1::bigint, $2::jsonb, $3)",
 				[
-					steamId.toString(),
+					steamid.toString(),
 					clientInfo,
 					batchId
 				],
@@ -38,7 +38,7 @@ class dbwrapper {
 				throw err;
 			}
 
-			var steamId = accountInfo.steamId;
+			var steamId = accountInfo.steamid;
 			batchId = batchId || null;
 
 			client.query("INSERT INTO accountinfo (steamid, data, batchid) VALUES ($1::bigint, $2::jsonb, $3)",

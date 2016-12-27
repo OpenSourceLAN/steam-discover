@@ -64,7 +64,7 @@ class multiSocket extends events {
 
 			try {
 				console.log(`Sending to address ${destAddress} on ${address.address}:${address.port}`);
-				socket.send(buffer, port, destAddress);
+				socket.send(buffer, 0, buffer.length, port, destAddress);
 			}
 			catch (e) {
 				console.error(`Could not send on ${address.address}:${address.port}`);

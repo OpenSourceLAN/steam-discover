@@ -89,7 +89,8 @@ cp config.example.json config.json
 # Get your Steam API key from http://steamcommunity.com/dev/apikey
 editor config.json
 
-# Connect to your postgres DB, create a user and database, and run the dbinit.sql script
+# Connect to your postgres DB, create a user and database, and run the postgres-init.sql script
+# (or mysql-init.sql script if you're using MySQL)
 
 node app.js
 ```
@@ -106,13 +107,14 @@ In the configuration file, you can specify a number of places to send data (sink
 These are currently:
 
 * Postgres
+* MySQL 5.7.8 and up (requires [JSON data type](https://dev.mysql.com/doc/refman/5.7/en/json.html))
 * Redis
 * UDP
 
 You can specify each one multiple times if, eg, you want to send to multiple UDP ports for
 whatever reason.
 
-Using Postgres, you will need to initialise a database with the `dbinit.sql` script.
+Using Postgres, you will need to initialise a database with the `postgres-init.sql` script.
 
 The Redis sink is currently used for the visualiser (see below), so only sends a very
 limited subset of data to the pub/sub queue. If someone asks, I'll make it send all

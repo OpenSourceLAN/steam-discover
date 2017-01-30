@@ -25,6 +25,16 @@
 					"profileurl"
 				]
 			}
+		},
+		{
+			"type": "mysql",
+			"enabled": false,
+			"options": {
+				"host": "localhost",
+				"user": "steamuser",
+				"password": "yourpasswordhere",
+				"database": "steam"
+			}
 		}
 	],
 	"excludeFields": [

@@ -7,7 +7,10 @@
  */
 
 var steam = require('steam-api'),
-    events = require('events');
+    events = require('events'),
+    async = require('async');
+
+var maxConcurrentApiRequests = 2;
 
 class SteamApiWrapper extends events {
   constructor(apiKey) {
@@ -46,12 +49,19 @@ class SteamApiWrapper extends events {
 
     // clone array so that our modifications don't affect the caller's copy
     steamIds = steamIds.slice(0);
+    var steamIdsStrings = [];
 
     while (steamIds.length > 0) {
-       var thisBatch = steamIds.splice(0,100);
-       var steamIdsString = thisBatch.join(",");
-       this.getPlayerInfo(steamIdsString, callback);
+      steamIdsStrings.push(steamIds.splice(0,100).join(","));
     }
+
+    var that = this;
+    async.mapLimit(steamIdsStrings, maxConcurrentApiRequests, function getBulkPlayerInfoSteamApiRequest(steamIdList, innerCallback) {
+      that.getPlayerInfo(steamIdList, function getPlayerInfoCallback(err, res) {
+        callback(err,res);
+        innerCallback();
+      })
+    })
   }
 }
 

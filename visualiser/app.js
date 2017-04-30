@@ -94,6 +94,10 @@ class gameCounter {
 		Object.keys(this.games).forEach((key) => {
 			d.push(this.games[key]);
 		});
-		return d;
+		var notInGame = d[0];
+		if (config.showPeopleNotPlayingGames == false) {
+			delete d[0];
+		}
+		return { games: d, notInGame: notInGame };
 	}
 }

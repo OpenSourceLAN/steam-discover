@@ -3,7 +3,7 @@
 <body>
 
 <div width="400" height="400" id="graphtarget"></div>
-
+<div width="400" style='text-align: center;position:relative; top:400px'>Not in game: <span id="notingame"></span></div>
 <script type='text/javascript' src="http://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script type='text/javascript'>
@@ -11,15 +11,14 @@ var socket = io.connect();
 
 socket.on("message", function(d) {
 
-
-	var data = d.map(function(datapoint) {
+	document.querySelectorAll("#notingame")[0].innerText = (d.notInGame || {}).hits;
+	var data = d.games.map(function(datapoint) {
 		return {
 			y: datapoint.hits,
 			legendText: datapoint.name,
 			label: datapoint.name
 		};
 	});
-	console.log(data);
 	var chart = new CanvasJS.Chart("graphtarget",
 	{
 		title:{

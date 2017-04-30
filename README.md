@@ -62,6 +62,17 @@ IP coming from your host running this
 2. Trunk all of your VLANs to the host running this, and set up an interface
 for each one. This tool will broadcast out on every IPv4 interface on the system. (configuration for that coming soon)
 
+**I want to run this at a giant event with over a thousand people. What should I do?**
+Requests to the Steam API are batched up in lots of 100. Making lots of simultaneous
+requests makes us bad people, so we have a limit of 2 concurrent requests to the API
+(you can update this in `steamapipwrapper.js`). Unless your internet is terrible or you
+are scanning 12k people, this probably won't be a concern for you.
+
+Additionally, the SteamAPI has a limit of 100k requests per day. The default broadcast interval is
+30s. 24 * 60 * 2 * (1000/100) = 28.8k. So that's safe and under the API limit. But if
+you ran at 10 second broadcast intervals, or your event increased to 3000, you would exceed
+the Steam API limits. Be careful!
+
 **Do you have any screenshots?**
 
 Not yet. It's just a pie chart and a text console. Very exciting stuff. 

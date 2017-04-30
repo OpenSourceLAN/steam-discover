@@ -91,13 +91,12 @@ class gameCounter {
 
 	flatten() {
 		var d = [];
+		var notInGame = this.games[0];
 		Object.keys(this.games).forEach((key) => {
-			d.push(this.games[key]);
+			if (config.showPeopleNotPlayingGames == true || key != 0) {
+				d.push(this.games[key]);
+			}
 		});
-		var notInGame = d[0];
-		if (config.showPeopleNotPlayingGames == false) {
-			delete d[0];
-		}
 		return { games: d, notInGame: notInGame };
 	}
 }

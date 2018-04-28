@@ -4,6 +4,15 @@
 
 A tool to discover Steam clients on your network and find out what they are playing. 
 
+### Steam API - Breaking Changes
+
+Steam API now restricts who can view your game activity. The default setting is "Friends only".
+This means that the only users whose state you can see are friends
+of the account whose API key you are using,
+or users who have changed the profile setting away from default. This
+severely limits the utility of this application.
+
+
 ### Features
 
 * Discovers steam clients on your LAN using the In Home Streaming discovery protocol
